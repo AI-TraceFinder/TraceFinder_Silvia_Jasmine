@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TraceFinder - Scanner Identification</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        
+        header {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+        
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .upload-area {
+            border: 3px dashed #ddd;
+            border-radius: 10px;
+            padding: 50px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .upload-area:hover {
+            border-color: #667eea;
+            background: #f8f9fa;
+        }
+        
+        .upload-area.active {
+            border-color: #667eea;
+            background: #e7f3ff;
+        }
+        
+        #preview {
+            max-width: 100%;
+            max-height: 400px;
+            border-radius: 10px;
+            margin: 20px 0;
+            display: none;
+        }
+        
+        button {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.1rem;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: transform 0.2s;
+            margin: 10px;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+        }
+        
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            display: none;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        #results {
+            display: none;
+        }
+        
+        .result-box {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .scanner-name {
+            font-size: 2rem;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        
+        .confidence {
+            font-size: 1.3rem;
+        }
+        
+        .top3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .top3-item {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .rank {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+        
+        .prob-bar {
+            background: #f0f0f0;
+            border-radius: 5px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        
+        .prob-fill {
+            background: #667eea;
+            color: white;
+            padding: 10px;
+            text-align: right;
+            transition: width 0.5s;
+        }
+        
+        #gradcam {
+            max-width: 100%;
+            border-radius: 10px;
+            margin: 20px 0;
+            display: none;
+        }
+        
+        .history-item {
+            display: grid;
+            grid-template-columns: 150px 1fr 150px 100px;
+            gap: 15px;
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            align-items: center;
+        }
+        
+        @media (max-width: 768px) {
+            .top3 { grid-template-columns: 1fr; }
+            .history-item { grid-template-columns: 1fr; gap: 5px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <h1>🔍 TraceFinder</h1>
+            <p>Forensic Scanner Identification System</p>
+        </header>
+
+        <!-- Upload Card -->
+        <div class="card">
+            <h2>Upload Scanned Document</h2>
+            <input type="file" id="fileInput" accept="image/*" style="display:none">
+            
+            <div class="upload-area" id="uploadArea">
+                <h3>📤 Click or Drop Image Here</h3>
+                <p>Supports JPG, PNG, TIFF</p>
+            </div>
+            
+            <img id="preview" alt="Preview">
+            
+            <div style="text-align: center;">
+                <button id="analyzeBtn" style="display:none">🚀 Identify Scanner</button>
+                <button id="changeBtn" style="display:none">🔄 Change Image</button>
+            </div>
+            
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Analyzing scanner signature...</p>
+            </div>
+        </div>
+
+        <!-- Results Card -->
+        <div class="card" id="results">
+            <h2>📊 Results</h2>
+            
+            <div class="result-box">
+                <div>Identified Scanner:</div>
+                <div class="scanner-name" id="scannerName">-</div>
+                <div class="confidence" id="confidence">-</div>
+            </div>
+            
+            <h3>Top 3 Predictions</h3>
+            <div class="top3" id="top3"></div>
+            
+            <h3>Probability Distribution</h3>
+            <div id="probChart"></div>
+            
+            <h3>🔥 Grad-CAM Visualization</h3>
+            <img id="gradcam" alt="Grad-CAM">
+            
+            <div style="text-align: center;">
+                <button id="downloadBtn">📥 Download Report</button>
+            </div>
+        </div>
+
+        <!-- History Card -->
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h2>📜 History</h2>
+                <button id="clearBtn" style="padding: 10px 20px; font-size: 0.9rem;">Clear</button>
+            </div>
+            <div id="history"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:8000';
+        
+        const fileInput = document.getElementById('fileInput');
+        const uploadArea = document.getElementById('uploadArea');
+        const preview = document.getElementById('preview');
+        const analyzeBtn = document.getElementById('analyzeBtn');
+        const changeBtn = document.getElementById('changeBtn');
+        const loading = document.getElementById('loading');
+        const results = document.getElementById('results');
+        
+        let currentFile = null;
+        
+        // Upload handlers
+        uploadArea.onclick = () => fileInput.click();
+        
+        uploadArea.ondragover = (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('active');
+        };
+        
+        uploadArea.ondragleave = () => uploadArea.classList.remove('active');
+        
+        uploadArea.ondrop = (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('active');
+            if (e.dataTransfer.files.length) {
+                handleFile(e.dataTransfer.files[0]);
+            }
+        };
+        
+        fileInput.onchange = (e) => {
+            if (e.target.files.length) {
+                handleFile(e.target.files[0]);
+            }
+        };
+        
+        changeBtn.onclick = () => fileInput.click();
+        
+        function handleFile(file) {
+            if (!file.type.startsWith('image/')) {
+                alert('Please select an image file');
+                return;
+            }
+            
+            currentFile = file;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                preview.src = e.target.result;
+                preview.style.display = 'block';
+                uploadArea.style.display = 'none';
+                analyzeBtn.style.display = 'inline-block';
+                changeBtn.style.display = 'inline-block';
+                results.style.display = 'none';
+            };
+            reader.readAsDataURL(file);
+        }
+        
+        // Analyze
+        analyzeBtn.onclick = async () => {
+            if (!currentFile) return;
+            
+            loading.style.display = 'block';
+            analyzeBtn.disabled = true;
+            results.style.display = 'none';
+            
+            try {
+                const formData = new FormData();
+                formData.append('file', currentFile);
+                
+                const response = await fetch(`${API_URL}/predict`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                displayResults(data);
+                loadHistory();
+                
+            } catch (error) {
+                alert('Error: Make sure backend is running!\n\nRun: python backend/app.py');
+            } finally {
+                loading.style.display = 'none';
+                analyzeBtn.disabled = false;
+            }
+        };
+        
+        function displayResults(data) {
+            document.getElementById('scannerName').textContent = data.prediction.scanner;
+            document.getElementById('confidence').textContent = 
+                `Confidence: ${data.prediction.confidence_pct}`;
+            
+            // Top 3
+            document.getElementById('top3').innerHTML = data.top_3.map(p => `
+                <div class="top3-item">
+                    <div class="rank">${['🥇','🥈','🥉'][p.rank-1]}</div>
+                    <div><strong>${p.scanner}</strong></div>
+                    <div>${p.confidence}</div>
+                </div>
+            `).join('');
+            
+            // Probabilities
+            const chart = document.getElementById('probChart');
+            chart.innerHTML = Object.entries(data.all_probabilities).map(([scanner, prob]) => `
+                <div style="margin: 10px 0;">
+                    <div style="font-weight: 600; margin-bottom: 5px;">${scanner}</div>
+                    <div class="prob-bar">
+                        <div class="prob-fill" style="width: ${prob*100}%">
+                            ${(prob*100).toFixed(1)}%
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            
+            // Grad-CAM
+            if (data.gradcam) {
+                const gradcam = document.getElementById('gradcam');
+                gradcam.src = data.gradcam;
+                gradcam.style.display = 'block';
+            }
+            
+            results.style.display = 'block';
+            results.scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        // Download
+        document.getElementById('downloadBtn').onclick = async () => {
+            if (!currentFile) return;
+            
+            try {
+                const formData = new FormData();
+                formData.append('file', currentFile);
+                
+                const response = await fetch(`${API_URL}/predict`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                const report = `
+TraceFinder Report
+==================
+
+File: ${data.filename}
+Date: ${data.timestamp}
+
+Result: ${data.prediction.scanner}
+Confidence: ${data.prediction.confidence_pct}
+
+Top 3:
+${data.top_3.map(p => `${p.rank}. ${p.scanner} - ${p.confidence}`).join('\n')}
+
+All Probabilities:
+${Object.entries(data.all_probabilities).map(([s,p]) => `${s}: ${(p*100).toFixed(2)}%`).join('\n')}
+                `.trim();
+                
+                const blob = new Blob([report], { type: 'text/plain' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `tracefinder_${Date.now()}.txt`;
+                a.click();
+                URL.revokeObjectURL(url);
+            } catch (error) {
+                alert('Download failed');
+            }
+        };
+        
+        // History
+        async function loadHistory() {
+            try {
+                const response = await fetch(`${API_URL}/history`);
+                const data = await response.json();
+                
+                const historyDiv = document.getElementById('history');
+                if (data.history.length === 0) {
+                    historyDiv.innerHTML = '<p style="text-align:center;color:#999;padding:20px">No predictions yet</p>';
+                    return;
+                }
+                
+                historyDiv.innerHTML = data.history.reverse().map(item => `
+                    <div class="history-item">
+                        <div>${item.timestamp}</div>
+                        <div>${item.filename}</div>
+                        <div style="color:#667eea;font-weight:600">${item.scanner}</div>
+                        <div style="color:#28a745;font-weight:600">${(item.confidence*100).toFixed(2)}%</div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('History error:', error);
+            }
+        }
+        
+        document.getElementById('clearBtn').onclick = async () => {
+            if (!confirm('Clear history?')) return;
+            try {
+                await fetch(`${API_URL}/history`, { method: 'DELETE' });
+                loadHistory();
+            } catch (error) {}
+        };
+        
+        // Load history on start
+        loadHistory();
+    </script>
+</body>
+</html>
