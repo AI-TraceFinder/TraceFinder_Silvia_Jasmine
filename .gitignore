@@ -14,3 +14,13 @@ __pycache__/
 dataset/
 processed_data/
 models/
+
+#dataset file
+dataset/      
+#preprocessed data
+processed_data/
+#Trained Model
+models/
+*.h5
+
+
