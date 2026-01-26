@@ -1,0 +1,16 @@
+# Virtual environments
+.venv/
+.venv_app/
+.venv_tf/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# VS Code
+.vscode/
+
+# ML generated data
+dataset/
+processed_data/
+models/

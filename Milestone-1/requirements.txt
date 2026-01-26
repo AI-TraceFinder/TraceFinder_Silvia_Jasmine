@@ -1,0 +1,12 @@
+pip install numpy pandas pillow opencv-python scikit-learn tensorflow streamlit matplotlib
+numpy
+pandas
+pillow
+opencv-python
+scikit-learn
+tensorflow
+streamlit
+matplotlib
+& .venv\Scripts\Activate.ps1
+py -3.10 -m streamlit run app.py
+//do feature selection
