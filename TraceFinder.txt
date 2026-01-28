@@ -1,0 +1,257 @@
+TraceFinder/
+│
+├── datasets/
+│   ├── scanned_docs/
+│   ├── dresden_camera/
+│   ├── source_camera/
+│   └── image_forensics/
+│
+├── scanner_data/
+│   ├── hp_scanner/
+│   └── epson_scanner/
+│
+├── processed_data/
+│
+├── models/
+│
+├── preprocess.py
+├── train.py
+├── app.py
+└── requirements.txt
+
+
+
+
+
+🧭 OVERALL PROJECT PLAN
+
+TraceFinder – Forensic Scanner Identification
+
+You will build this in 3 phases:
+
+🟦 PHASE 1 — Learn & Build Pipeline (Using Kaggle Datasets)
+
+👉 Goal: Learn image loading, preprocessing, training, prediction, Streamlit UI.
+
+You will NOT worry about scanners yet.
+
+✅ Step 1 — Organize Your Project Folder
+
+Create this structure in VS Code:
+
+TraceFinder/
+│
+├── datasets/
+│   ├── scanned_docs/        ← OCR scanned dataset
+│   ├── dresden_camera/      ← Dresden dataset
+│   ├── source_camera/       ← Source Camera dataset
+│   └── image_forensics/     ← Forensics dataset
+│
+├── scanner_data/            ← (EMPTY for now – will add later)
+│
+├── processed_data/
+│
+├── models/
+│
+├── app.py                   ← Streamlit app
+├── preprocess.py
+├── train.py
+└── requirements.txt
+
+
+Unzip each Kaggle dataset into the correct folder.
+
+✅ Step 2 — Explore Each Dataset
+
+Open Python and:
+
+✔ Count number of images
+✔ See folder names (labels)
+✔ Display sample images
+
+Understand:
+
+What classes exist
+
+Image sizes
+
+Formats
+
+This builds confidence.
+
+✅ Step 3 — Preprocess Images
+
+You will:
+
+✔ Resize all images to same size (128×128)
+✔ Normalize pixel values
+✔ Save into processed_data/
+
+This is mandatory for ML.
+
+✅ Step 4 — Train a Practice Model (Camera Dataset)
+
+You will train a CNN model using:
+
+dresden_camera/
+or
+source_camera/
+
+
+Goal:
+✔ Learn training pipeline
+✔ Understand accuracy
+✔ Save model
+
+This is NOT final project model.
+
+✅ Step 5 — Build Streamlit Demo App
+
+You will:
+
+✔ Upload image
+✔ Model predicts camera class
+✔ Display result
+
+This proves your pipeline works end-to-end.
+
+🟩 PHASE 2 — Collect REAL Scanner Dataset (HP & Epson)
+
+👉 Goal: Build your actual forensic dataset.
+
+✅ Step 6 — Collect Scanner Images
+
+You will:
+
+✔ Print 30–50 identical pages
+✔ Scan using HP scanner
+✔ Scan using Epson scanner
+
+Save as:
+
+scanner_data/
+ ├── hp_scanner/
+ └── epson_scanner/
+
+✅ Step 7 — Preprocess Scanner Images
+
+Resize and normalize scanner images exactly like Phase 1.
+
+✅ Step 8 — Train Final Scanner Identification Model
+
+Train CNN using:
+
+scanner_data/
+ ├── hp_scanner
+ ├── epson_scanner
+
+
+Now the model truly predicts scanner source.
+
+✅ Step 9 — Update Streamlit App
+
+User uploads scanned image →
+Model predicts:
+
+HP Scanner
+or
+Epson Scanner
+
+
+🎉 Final project ready.
+
+
+Source Camera Identification: A Custom Dataset-4 ---source_camera/ - x
+Real and Fake Images Dataset for Image Forensics ---image_forensics/
+FUNSD-Form Understanding Noisy Scanned Documents ---FUSND
+
+TraceFinder/
+│
+├── datasets/                     👈 Kaggle / external datasets
+│   ├── scanned_docs/             (FUNSD, OCR datasets)
+│   ├── dresden_camera/           (ND Dresden)
+│   ├── source_camera/            (Camera ID dataset)
+│   └── image_forensics/          (Real/Fake dataset)
+│
+├── scanner_data/                 👈 YOUR real scanner images
+│   ├── hp_scanner/
+│   └── epson_scanner/
+│
+├── processed_data/               👈 Preprocessed images
+│
+├── models/                       👈 Saved ML models (folder)
+│
+├── preprocess.py
+├── train.py
+├── app.py                        👈 Streamlit app
+└── requirements.txt
+
+final structure 
+TraceFinder/
+│
+├── scanner_data/                # RAW DATA (input images)
+│   ├── canon_scanner/           # Real Canon scanned images
+│   ├── hp_scanner/              # Synthetic HP images
+│   └── epson_scanner/           # Synthetic Epson images
+│
+├── processed_data/              # Preprocessed images (resized, grayscale)
+│   ├── canon_scanner/
+│   ├── hp_scanner/
+│   └── epson_scanner/
+│
+├── models/                      # Saved trained ML models
+│   └── scanner_model.h5
+│
+├── scripts/                     # All Python scripts
+│   ├── generate_fake_scanners.py
+│   ├── preprocess.py
+│   ├── train.py
+│   └── evaluate.py
+│
+├── app.py                       # Streamlit web app
+│
+├── requirements.txt             # Python dependencies
+│
+└── README.md                    # Project documentation
+
+py -3.10 -m streamlit run app.py
+
+
+
+⚠️ Warning Message You See
+The `use_column_width` parameter has been deprecated...
+Please utilize the `width` parameter instead.
+
+
+👉 This means:
+Your code uses something like:
+
+st.image(img, use_column_width=True)
+
+
+Streamlit is warning that in future versions this may stop working.
+
+✔️ App still works fine.
+✔️ Not an error.
+✔️ Optional to fix.
+
+✅ How to Fix It (Optional)
+
+Change this:
+
+st.image(img, use_column_width=True)
+
+
+To this:
+
+st.image(img, width="container")
+
+
+or
+
+st.image(img, width=700)
+
+ https://tracefindersilviajasmine-4fcryy4wvgxrjycpdunlsw.streamlit.app/
+
+
+
